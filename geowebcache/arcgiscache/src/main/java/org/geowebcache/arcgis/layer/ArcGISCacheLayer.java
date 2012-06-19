@@ -125,14 +125,16 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         try {
             CacheInfoPersister tilingSchemeLoader = new CacheInfoPersister();
             cacheInfo = tilingSchemeLoader.load(new FileReader(tilingScheme));
-            File layerBoundsFile = new File(tilingScheme.getParentFile(), "conf.cdi");
-            if (!layerBoundsFile.exists()) {
-                throw new RuntimeException("Layer bounds file not found: "
-                        + layerBoundsFile.getAbsolutePath());
+            if (this.layerBounds == null) {
+                File layerBoundsFile = new File(tilingScheme.getParentFile(), "conf.cdi");
+                if (!layerBoundsFile.exists()) {
+                    throw new RuntimeException("Layer bounds file not found: "
+                            + layerBoundsFile.getAbsolutePath());
+                }
+                log.info("Parsing layer bounds for " + getName());
+                this.layerBounds = tilingSchemeLoader.parseLayerBounds(new FileReader(layerBoundsFile));
+                log.info("Parsed layer bounds for " + getName() + ": " + layerBounds);
             }
-            log.info("Parsing layer bounds for " + getName());
-            this.layerBounds = tilingSchemeLoader.parseLayerBounds(new FileReader(layerBoundsFile));
-            log.info("Parsed layer bounds for " + getName() + ": " + layerBounds);
         } catch (FileNotFoundException e) {
             throw new IllegalStateException("Tiling scheme file not found: "
                     + tilingScheme.getAbsolutePath());
