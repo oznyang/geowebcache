@@ -36,7 +36,8 @@ public class EntityStoreBuilder {
 
         EnvironmentConfig envCfg = new EnvironmentConfig();
         envCfg.setAllowCreate(true);
-        //envCfg.setLockTimeout(1000, TimeUnit.MILLISECONDS);
+        //envCfg.setCacheMode(CacheMode.DEFAULT);
+        envCfg.setLockTimeout(1000, TimeUnit.MILLISECONDS);
         envCfg.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
         envCfg.setSharedCache(true);
         envCfg.setTransactional(true);

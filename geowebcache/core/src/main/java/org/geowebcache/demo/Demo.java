@@ -244,7 +244,7 @@ public class Demo {
 
         String openLayersPath;
         if (asPlugin) {
-            openLayersPath = "../../openlayers/OpenLayers.js";
+            openLayersPath = "../openlayers/OpenLayers.js";
         } else {
             openLayersPath = "../openlayers/OpenLayers.js";
         }

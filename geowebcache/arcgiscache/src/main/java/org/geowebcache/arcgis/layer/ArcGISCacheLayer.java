@@ -62,7 +62,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
 
     private transient CacheInfo cacheInfo;
 
-    private transient BoundingBox layerBounds;
+    private BoundingBox layerBounds;
 
     @Override
     public boolean isEnabled() {
@@ -98,6 +98,10 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
      */
     public void setTileCachePath(File tileCachePath) {
         this.tileCachePath = tileCachePath;
+    }
+
+    public CacheInfo getCacheInfo() {
+        return cacheInfo;
     }
 
     /**

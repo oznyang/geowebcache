@@ -31,7 +31,7 @@ public class Start {
             String portVariable = System.getProperty("jetty.port");
             int port = parsePort(portVariable);
             if (port <= 0)
-                port = 8081;
+                port = 8080;
             conn.setPort(port);
             conn.setAcceptQueueSize(100);
             jettyServer.setConnectors(new Connector[] { conn });
