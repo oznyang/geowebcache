@@ -69,4 +69,8 @@ public class FileResource implements Resource {
     public OutputStream getOutputStream() throws IOException {
         return new FileOutputStream(file);
     }
+
+    public long lastModified(){
+        return file.lastModified();
+    }
 }

@@ -94,7 +94,7 @@ public class ArcgisRestService extends Service {
     //contextPath/service/arcgisrest/{serviceName}/MapServer
     private void handleInfo(String serviceName, String f, String callback, HttpServletRequest request, HttpServletResponse response) throws GeoWebCacheException {
         TileLayer tileLayer = tld.getTileLayer(serviceName);
-        InfoGenerator gen = new InfoGenerator(request, response, tileLayer);
+        InfoGenerator gen = new InfoGenerator(request, tileLayer);
         String out;
         if ("json".equals(f)) {
             out = gen.generateJson();

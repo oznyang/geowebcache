@@ -10,11 +10,11 @@ import org.geowebcache.arcgis.config.CacheInfo;
 import org.geowebcache.arcgis.config.LODInfo;
 import org.geowebcache.arcgis.layer.ArcGISCacheLayer;
 import org.geowebcache.grid.BoundingBox;
+import org.geowebcache.grid.Grid;
 import org.geowebcache.grid.GridSubset;
 import org.geowebcache.layer.TileLayer;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -40,14 +40,12 @@ public final class InfoGenerator {
         }
     }
 
-    public InfoGenerator(HttpServletRequest request, HttpServletResponse response, TileLayer layer) {
+    public InfoGenerator(HttpServletRequest request, TileLayer layer) {
         this.request = request;
-        this.response = response;
         this.layer = layer;
     }
 
     private HttpServletRequest request;
-    private HttpServletResponse response;
     private TileLayer layer;
 
     public String generateJson() {
@@ -76,9 +74,10 @@ public final class InfoGenerator {
         extent.put("spatialReference", Collections.singletonMap("wkid", wkid));
         map.put("initialExtent", extent);
         map.put("fullExtent", extent);
-        if (cacheInfo != null) {
-            map.put("singleFusedMapCache", true);
-            map.put("spatialReference", Collections.singletonMap("wkid", wkid));
+        map.put("singleFusedMapCache", true);
+        map.put("spatialReference", Collections.singletonMap("wkid", wkid));
+        map.put("layers", Collections.emptyList());
+        if (false) {
             Map<String, Object> tileInfo = new LinkedHashMap<String, Object>();
             tileInfo.put("rows", cacheInfo.getTileCacheInfo().getTileRows());
             tileInfo.put("cols", cacheInfo.getTileCacheInfo().getTileCols());
@@ -100,18 +99,29 @@ public final class InfoGenerator {
             }
             tileInfo.put("lods", lods);
             map.put("tileInfo", tileInfo);
-            map.put("layers", Collections.emptyList());
         } else {
-            Map<Object, Serializable> layerInfo = new LinkedHashMap<Object, Serializable>();
-            layerInfo.put("id", 0);
-            layerInfo.put("name", layer.getName());
-            layerInfo.put("parentLayerId", -1);
-            layerInfo.put("defaultVisibility", true);
-            layerInfo.put("subLayerIds", null);
-            layerInfo.put("minScale", 0);
-            layerInfo.put("maxScale", 0);
-            map.put("layers", Collections.singletonList(layerInfo));
-            map.put("singleFusedMapCache", false);
+            Map<String, Object> tileInfo = new LinkedHashMap<String, Object>();
+            tileInfo.put("rows", gridSubset.getTileHeight());
+            tileInfo.put("cols", gridSubset.getTileWidth());
+            tileInfo.put("dpi", (int) gridSubset.getDotsPerInch());
+            tileInfo.put("format", "PNG8");
+            tileInfo.put("compressionQuality", "0");
+            Map<String, Double> origin = new HashMap<String, Double>();
+            origin.put("x", gridSubset.getGridSetBounds().getMinX());
+            origin.put("y", gridSubset.getGridSetBounds().getMaxY());
+            tileInfo.put("origin", origin);
+            tileInfo.put("spatialReference", Collections.singletonMap("wkid", wkid));
+            List<Map<String, Number>> lods = new ArrayList<Map<String, Number>>();
+            for (int i = gridSubset.getZoomStart(), max = gridSubset.getZoomStop(); i <= max; i++) {
+                Map<String, Number> l = new HashMap<String, Number>();
+                Grid grid = gridSubset.getGridSet().getGrid(i);
+                l.put("level", i);
+                l.put("resolution", grid.getResolution());
+                l.put("scale", grid.getScaleDenominator());
+                lods.add(l);
+            }
+            tileInfo.put("lods", lods);
+            map.put("tileInfo", tileInfo);
         }
         return JSON.toJSONString(map, SerializerFeature.DisableCircularReferenceDetect);
     }
@@ -121,7 +131,7 @@ public final class InfoGenerator {
         Map<String, Serializable> model = new HashMap<String, Serializable>();
         model.put("serviceName", layer.getName());
         model.put("ctx", request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath());
-        model.put("isTiled", layer instanceof ArcGISCacheLayer);
+        model.put("isTiled", true);
         try {
             jsapiTpl.process(model, result);
         } catch (Exception e) {
