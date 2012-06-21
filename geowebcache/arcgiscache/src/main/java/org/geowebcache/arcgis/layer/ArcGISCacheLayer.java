@@ -115,21 +115,21 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
      */
     @Override
     protected boolean initializeInternal(GridSetBroker gridSetBroker) {
-        if (this.enabled == null) {
-            this.enabled = true;
+        if (tilingScheme == null || tileCachePath==null) {
+            log.error("Layer " + getName() + " tiling scheme has not been set!");
+            return this.enabled = false;
+            //throw new IllegalStateException(
+            //        "tilingScheme has not been set. It should point to the ArcGIS "
+            //               + "cache tiling scheme file for this layer (conf.xml)");
         }
-        if (this.tilingScheme == null) {
-            throw new IllegalStateException(
-                    "tilingScheme has not been set. It should point to the ArcGIS "
-                            + "cache tiling scheme file for this layer (conf.xml)");
-        }
-        if (tileCachePath != null) {
-            if (!tileCachePath.exists() || !tileCachePath.isDirectory() || !tileCachePath.canRead()) {
-                throw new IllegalStateException("tileCachePath property for layer '" + getName()
-                        + "' is set to '" + tileCachePath
-                        + "' but the directory either does not exist or is not readable");
-            }
-        }
+        //if (tileCachePath != null) {
+        //   if (!tileCachePath.exists() || !tileCachePath.isDirectory() || !tileCachePath.canRead()) {
+        //
+        //        throw new IllegalStateException("tileCachePath property for layer '" + getName()
+        //                + "' is set to '" + tileCachePath
+        //                + "' but the directory either does not exist or is not readable");
+        //    }
+        //}
         try {
             CacheInfoPersister tilingSchemeLoader = new CacheInfoPersister();
             cacheInfo = tilingSchemeLoader.load(new FileReader(tilingScheme));
@@ -155,6 +155,9 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
 
         super.subSets = createGridSubsets(gridSetBroker);
         super.formats = loadMimeTypes();
+        if (this.enabled == null) {
+            this.enabled = true;
+        }
         return true;
     }
 

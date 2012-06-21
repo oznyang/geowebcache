@@ -77,7 +77,7 @@ public final class InfoGenerator {
         map.put("singleFusedMapCache", true);
         map.put("spatialReference", Collections.singletonMap("wkid", wkid));
         map.put("layers", Collections.emptyList());
-        if (false) {
+        if (cacheInfo != null) {
             Map<String, Object> tileInfo = new LinkedHashMap<String, Object>();
             tileInfo.put("rows", cacheInfo.getTileCacheInfo().getTileRows());
             tileInfo.put("cols", cacheInfo.getTileCacheInfo().getTileCols());
