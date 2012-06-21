@@ -46,7 +46,7 @@ import org.geowebcache.util.GWCVars;
 /**
  * Default statefull base class for {@link TileLayer} implementations
  */
-public abstract class AbstractTileLayer extends TileLayer {
+public abstract class AbstractTileLayer extends TileLayer{
 
     private static Log log = LogFactory.getLog(org.geowebcache.layer.AbstractTileLayer.class);
 
@@ -98,6 +98,20 @@ public abstract class AbstractTileLayer extends TileLayer {
     protected transient Map<String, GridSubset> subSets;
 
     private transient LayerListenerList listeners;
+
+    private int order=0;
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public int compareTo(TileLayer o) {
+        return o.getOrder() - order;
+    }
 
     // Styles?
 

@@ -1,16 +1,5 @@
 package org.geowebcache.arcgis.layer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
@@ -20,13 +9,7 @@ import org.geowebcache.arcgis.config.LODInfo;
 import org.geowebcache.arcgis.config.TileCacheInfo;
 import org.geowebcache.conveyor.Conveyor.CacheResult;
 import org.geowebcache.conveyor.ConveyorTile;
-import org.geowebcache.grid.BoundingBox;
-import org.geowebcache.grid.Grid;
-import org.geowebcache.grid.GridSet;
-import org.geowebcache.grid.GridSetBroker;
-import org.geowebcache.grid.GridSubset;
-import org.geowebcache.grid.GridSubsetFactory;
-import org.geowebcache.grid.OutsideCoverageException;
+import org.geowebcache.grid.*;
 import org.geowebcache.io.ByteArrayResource;
 import org.geowebcache.io.FileResource;
 import org.geowebcache.io.Resource;
@@ -34,10 +17,18 @@ import org.geowebcache.layer.AbstractTileLayer;
 import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.List;
+
 /**
- *
  * @author Gabriel Roldan
- *
  */
 public class ArcGISCacheLayer extends AbstractTileLayer {
 
@@ -118,9 +109,9 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     * @see org.geowebcache.layer.TileLayer#initialize(org.geowebcache.grid.GridSetBroker)
      * @return {@code true} if success. Note this method's return type should be void. It's not
      *         checked anywhere
+     * @see org.geowebcache.layer.TileLayer#initialize(org.geowebcache.grid.GridSetBroker)
      */
     @Override
     protected boolean initializeInternal(GridSetBroker gridSetBroker) {
@@ -153,8 +144,11 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
                 log.info("Parsed layer bounds for " + getName() + ": " + layerBounds);
             }
         } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Tiling scheme file not found: "
-                    + tilingScheme.getAbsolutePath());
+            log.error("Layer " + getName() + " tiling scheme ["
+                    + tilingScheme.getAbsolutePath() + "] not exist!");
+            return this.enabled = false;
+            //throw new IllegalStateException("Tiling scheme file not found: "
+            //        + tilingScheme.getAbsolutePath());
         }
         log.info("Configuring layer " + getName() + " out of the ArcGIS tiling scheme "
                 + tilingScheme.getAbsolutePath());
@@ -205,7 +199,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#getTile(org.geowebcache.conveyor.ConveyorTile)
      */
     @Override
@@ -323,7 +316,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         return String.valueOf(data);
     }
 
-    private Resource readFile(File fh)  {
+    private Resource readFile(File fh) {
         if (!fh.exists()) {
             return null;
         }
@@ -332,7 +325,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#getNoncachedTile(org.geowebcache.conveyor.ConveyorTile)
      */
     @Override
@@ -341,7 +333,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#seedTile(org.geowebcache.conveyor.ConveyorTile, boolean)
      */
     @Override
@@ -351,7 +342,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#doNonMetatilingRequest(org.geowebcache.conveyor.ConveyorTile)
      */
     @Override
@@ -360,7 +350,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#getStyles()
      */
     @Override
@@ -369,7 +358,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#acquireLayerLock()
      */
     @Override
@@ -378,7 +366,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#releaseLayerLock()
      */
     @Override
@@ -387,7 +374,6 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
     }
 
     /**
-     *
      * @see org.geowebcache.layer.TileLayer#setExpirationHeader(javax.servlet.http.HttpServletResponse,
      *      int)
      */

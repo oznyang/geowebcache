@@ -61,13 +61,15 @@ import org.geowebcache.util.ServletUtils;
  * tile
  * </p>
  */
-public abstract class TileLayer {
+public abstract class TileLayer implements Comparable<TileLayer>{
 
     private static Log log = LogFactory.getLog(org.geowebcache.layer.TileLayer.class);
 
     protected static final ThreadLocal<ByteArrayResource> WMS_BUFFER = new ThreadLocal<ByteArrayResource>();
 
     protected static final ThreadLocal<ByteArrayResource> WMS_BUFFER2 = new ThreadLocal<ByteArrayResource>();
+
+    public abstract int getOrder();
 
     // cached default parameter filter values
     protected transient Map<String, String> defaultParameterFilterValues;
