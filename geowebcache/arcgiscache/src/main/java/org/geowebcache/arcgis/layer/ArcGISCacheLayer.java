@@ -1,5 +1,6 @@
 package org.geowebcache.arcgis.layer;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geowebcache.GeoWebCacheException;
@@ -18,10 +19,7 @@ import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -115,7 +113,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
      */
     @Override
     protected boolean initializeInternal(GridSetBroker gridSetBroker) {
-        if (tilingScheme == null || tileCachePath==null) {
+        if (tilingScheme == null) {
             log.error("Layer " + getName() + " tiling scheme has not been set!");
             return this.enabled = false;
             //throw new IllegalStateException(
@@ -130,9 +128,12 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
         //                + "' but the directory either does not exist or is not readable");
         //    }
         //}
+        Reader tilingSchemeReader=null;
+        Reader layerBoundsFileReader=null;
         try {
             CacheInfoPersister tilingSchemeLoader = new CacheInfoPersister();
-            cacheInfo = tilingSchemeLoader.load(new FileReader(tilingScheme));
+            tilingSchemeReader = new FileReader(tilingScheme);
+            cacheInfo = tilingSchemeLoader.load(tilingSchemeReader);
             if (this.layerBounds == null) {
                 File layerBoundsFile = new File(tilingScheme.getParentFile(), "conf.cdi");
                 if (!layerBoundsFile.exists()) {
@@ -140,6 +141,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
                             + layerBoundsFile.getAbsolutePath());
                 }
                 log.info("Parsing layer bounds for " + getName());
+                layerBoundsFileReader = new FileReader(layerBoundsFile);
                 this.layerBounds = tilingSchemeLoader.parseLayerBounds(new FileReader(layerBoundsFile));
                 log.info("Parsed layer bounds for " + getName() + ": " + layerBounds);
             }
@@ -149,6 +151,9 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
             return this.enabled = false;
             //throw new IllegalStateException("Tiling scheme file not found: "
             //        + tilingScheme.getAbsolutePath());
+        } finally {
+            IOUtils.closeQuietly(tilingSchemeReader);
+            IOUtils.closeQuietly(layerBoundsFileReader);
         }
         log.info("Configuring layer " + getName() + " out of the ArcGIS tiling scheme "
                 + tilingScheme.getAbsolutePath());
@@ -365,7 +370,7 @@ public class ArcGISCacheLayer extends AbstractTileLayer {
      */
     @Override
     public void acquireLayerLock() {
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
     }
 
     /**
