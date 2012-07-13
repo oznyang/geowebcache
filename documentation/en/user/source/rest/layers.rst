@@ -79,6 +79,12 @@ Given a `layer.xml` file as the following:
 
  curl -v -u geowebcache:secured -XPUT -H "Content-type: text/xml" -d @layer.xml  "http://localhost:8080/geowebcache/rest/layers/layer1.xml"
 
+Or if using the GeoServer integrated version of GeoWebCache:
+
+.. code-block:: xml 
+
+ curl -v -u user:password -XPUT -H "Content-type: text/xml" -d @layer.xml  "http://localhost:8080/geoserver/gwc/rest/layers/layer1.xml"
+
 Note that the addressed resource ``layer1.xml``, without the ``.xml`` extension, must match the name of the layer in the xml representation.
 
 
@@ -115,7 +121,7 @@ And use the HTTP POST method instead:
 
 .. code-block:: xml 
 
- curl -v -u geowebcache:secured -XPOST -H "Content-type: text/xml" -d @layer.xml  "http://localhost:8080/geowebcache/rest/layers/layer1.xml"
+ curl -v -u geowebcache:secured -XPOST -H "Content-type: text/xml" -d @layer.xml  "http://localhost:8080/geoserver/gwc/rest/layers/layer1.xml"
  
 Delete Layer
 ++++++++++++
@@ -124,5 +130,5 @@ Finally, to delete a layer, use the HTTP DELETE method against the layer resourc
 
 .. code-block:: xml 
 
- curl -v -u geowebcache:secured -XDELETE "http://localhost:8080/geowebcache/rest/layers/layer1.xml"
+ curl -v -u geowebcache:secured -XDELETE "http://localhost:8080/geoserver/gwc/rest/layers/layer1.xml"
 
