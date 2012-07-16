@@ -130,8 +130,16 @@ public final class InfoGenerator {
         StringWriter result = new StringWriter();
         Map<String, Serializable> model = new HashMap<String, Serializable>();
         model.put("serviceName", layer.getName());
-        model.put("ctx", request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath());
+        String ctx = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+        model.put("ctx", ctx);
         model.put("isTiled", true);
+        String jsapiUrl = (String) request.getAttribute("_jsapiUrl");
+        if (jsapiUrl != null) {
+            if (!jsapiUrl.startsWith("http")) {
+                jsapiUrl = ctx + "/" + jsapiUrl;
+            }
+            model.put("jsapiUrl", jsapiUrl);
+        }
         try {
             jsapiTpl.process(model, result);
         } catch (Exception e) {

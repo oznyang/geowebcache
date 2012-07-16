@@ -31,6 +31,8 @@ public class ArcgisRestService extends Service {
 
     private TileLayerDispatcher tld;
 
+    private String jsapiUrl;
+
     public ArcgisRestService() {
         super(SERVICE_ARCGIS_REST);
     }
@@ -39,6 +41,10 @@ public class ArcgisRestService extends Service {
         this();
         this.sb = sb;
         this.tld = tld;
+    }
+
+    public void setJsapiUrl(String jsapiUrl) {
+        this.jsapiUrl = jsapiUrl;
     }
 
     @Override
@@ -105,6 +111,8 @@ public class ArcgisRestService extends Service {
                 response.setContentType("text/json;charset=utf-8");
             }
         } else {
+            if (jsapiUrl != null)
+                request.setAttribute("_jsapiUrl", jsapiUrl);
             response.setContentType("text/html;charset=utf-8");
             out = gen.generateJsapi();
         }

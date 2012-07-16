@@ -107,12 +107,15 @@
             padding: 0 0 3px;
         }
     </style>
-    <link href="http://serverapi.arcgisonline.com/jsapi/arcgis/1.2/js/dojo/dijit/themes/tundra/tundra.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis?v=1.2"></script>
+    <#if jsapiUrl??><script type="text/javascript">var esriConfig_baseUrl='${jsapiUrl!'http://serverapi.arcgisonline.com/jsapi'}/arcgis/1.2/';</script></#if>
+    <link href="${jsapiUrl!'http://serverapi.arcgisonline.com/jsapi'}/arcgis/1.2/js/dojo/dijit/themes/tundra/tundra.css"
+          rel="stylesheet" type="text/css"/>
+    <script type="text/javascript"
+            src="${jsapiUrl!'http://serverapi.arcgisonline.com/jsapi'}/arcgis${jsapiUrl???string('.js','?v=1.2')}"></script>
     <script type="text/javascript">
         dojo.require("esri.map");
         var map;
-        dojo.addOnLoad(function(){
+        dojo.addOnLoad(function () {
             dojo.style(dojo.byId("map"), { width:dojo.contentBox("map").w + "px", height:(esri.documentBox.h - dojo.contentBox("loginTable").h - 40) + "px" });
             map = new esri.Map("map");
             var layer = new esri.layers.${isTiled?string('ArcGISTiledMapServiceLayer','ArcGISDynamicMapServiceLayer')}("${ctx}/service/arcgisrest/${serviceName}/MapServer");
@@ -125,7 +128,8 @@
 <table id="loginTable" width="100%">
     <tr>
         <td id="breadcrumbs">ArcGIS JavaScript API: ${serviceName}</td>
-        <td id="help" align="right">Built using the <a href="http://resources.esri.com/arcgisserver/apis/javascript/arcgis">ArcGIS JavaScript API</a></td>
+        <td id="help" align="right">Built using the <a
+                href="http://resources.esri.com/arcgisserver/apis/javascript/arcgis">ArcGIS JavaScript API</a></td>
     </tr>
 </table>
 <div id="map" style="margin-left:10px;margin-right:10px;width:97%;border:1px solid #000;"></div>
