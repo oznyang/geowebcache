@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.geowebcache.mime.MimeType;
+import org.geowebcache.storage.blobstore.file.FilePathGenerator;
 import org.geowebcache.util.ServletUtils;
 
 /**
@@ -43,7 +44,7 @@ public class TileRange {
 
     private final Map<String, String> parameters;
 
-    private Long parametersId;
+    private String parametersId;
 
     /**
      * @deprecated use {@link #TileRange(String, String, int, int, long[][], MimeType, Map)}
@@ -56,13 +57,12 @@ public class TileRange {
 
     public TileRange(String layerName, String gridSetId, int zoomStart, int zoomStop,
             long[][] rangeBounds, MimeType mimeType, Map<String, String> parameters) {
-        // we don't know the params id yet, has to be set by the metastore so we set it to null
-        this(layerName, gridSetId, zoomStart, zoomStop, rangeBounds, mimeType, parameters, null);
+        this(layerName, gridSetId, zoomStart, zoomStop, rangeBounds, mimeType, parameters, FilePathGenerator.getParametersId(parameters));
     }
 
     public TileRange(String layerName, String gridSetId, int zoomStart, int zoomStop,
             long[][] rangeBounds, MimeType mimeType, Map<String, String> parameters,
-            Long parametersId) {
+            String parametersId) {
         this.layerName = layerName;
         this.gridSetId = gridSetId;
         if (rangeBounds == null) {
@@ -104,14 +104,14 @@ public class TileRange {
         return false;
     }
 
-    public void setParametersId(long parametersId) {
+    public void setParametersId(String parametersId) {
         this.parametersId = parametersId;
     }
 
     /**
      * @return the parameters id, or {@code null} if unset
      */
-    public Long getParametersId() {
+    public String getParametersId() {
         return parametersId;
     }
 

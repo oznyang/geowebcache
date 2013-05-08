@@ -16,7 +16,9 @@
  */
 package org.geowebcache.grid;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -62,6 +64,11 @@ public class GridSubset {
         return gridSet.boundsFromIndex(tileIndex);
     }
 
+    /**
+     * Finds the spatial bounding box of a rectangular group of tiles.
+     * @param rectangleExtent the rectangle of tiles.  {minx, miny, maxx, maxy} in tile coordinates
+     * @return the spatial bounding box in the coordinates of the SRS used by the GridSet
+     */
     public BoundingBox boundsFromRectangle(long[] rectangleExtent) {
         return gridSet.boundsFromRectangle(rectangleExtent);
     }
@@ -224,6 +231,12 @@ public class GridSubset {
         return ret;
     }
 
+    /**
+     * Find the area that covers the given rectangle with tiles from the subset.
+     * @param level integer zoom level at which to consider the tiles
+     * @param reqBounds BoundingBox to try to cover.
+     * @return Array of long, the rectangle in tile coordinates, {minx, miny, maxx, maxy}
+     */
     public long[] getCoverageIntersection(int level, BoundingBox reqBounds) {
         long[] reqRectangle = gridSet.closestRectangle(level, reqBounds);
         GridCoverage gridCoverage = gridCoverageLevels.get(Integer.valueOf(level));
@@ -232,11 +245,11 @@ public class GridSubset {
 
     public long getGridIndex(String gridId) {
 
+        final int zoomStart = getZoomStart();
         final int zoomStop = getZoomStop();
-        final Grid[] gridLevels = gridSet.getGridLevels();
 
-        for (int index = getZoomStart(); index < zoomStop; index++) {
-            if (gridLevels[index].getName().equals(gridId)) {
+        for (int index = zoomStart; index <= zoomStop; index++) {            
+            if (gridSet.getGrid(index).getName().equals(gridId)) {
                 return index;
             }
         }
@@ -245,15 +258,15 @@ public class GridSubset {
     }
 
     public String[] getGridNames() {
-        String[] ret = new String[gridCoverageLevels.size()];
+        List<String> ret = new ArrayList<String>(gridCoverageLevels.size());
 
+        final int zoomStart = getZoomStart();
         final int zoomStop = getZoomStop();
-        final Grid[] gridLevels = gridSet.getGridLevels();
-        for (int i = getZoomStart(); i < zoomStop; i++) {
-            ret[i] = gridLevels[i].getName();
+        for (int i = zoomStart; i <= zoomStop; i++) {
+            ret.add(gridSet.getGrid(i).getName());
         }
 
-        return ret;
+        return ret.toArray(new String[ret.size()]);
     }
 
     public GridSet getGridSet() {
@@ -366,18 +379,31 @@ public class GridSubset {
      * @return
      */
     // TODO: this is specific to WMTS, move it somewhere on the wmts module
+    // TODO: Does this need to be public?
     public long[][] getWMTSCoverages() {
         long[][] ret = new long[gridCoverageLevels.size()][4];
 
         final int zoomStop = getZoomStop();
-        for (int i = getZoomStart(); i <= zoomStop; i++) {
-            Grid grid = gridSet.getGridLevels()[i];
+        int zoomStart = getZoomStart();
+        for (int i = zoomStart; i <= zoomStop; i++) {
+            Grid grid = gridSet.getGrid(i);
             long[] coverage = getCoverage(i);
 
-            long[] cur = { coverage[0], grid.getNumTilesHigh() - coverage[3], coverage[2],
-                    grid.getNumTilesHigh() - coverage[1] };
+            /*
+             * Both internal and WMTS coordinates start at 0 and run to 1 less than the number of
+             * tiles.  In internal coordinates, row 0 is the bottommost, and in WMTS it's the
+             * topmost.  So subtract the row number from 1 less than the height to convert.
+             */
+            long bottomRow = grid.getNumTilesHigh()-1; // The WMST row number for the bottom row
+            
+            long[] cur = { 
+                    coverage[0],             // minX
+                    bottomRow - coverage[3], // minY
+                    coverage[2],             // maxX
+                    bottomRow - coverage[1]  // maxY
+                };
 
-            ret[i] = cur;
+            ret[i - zoomStart] = cur;
         }
 
         return ret;

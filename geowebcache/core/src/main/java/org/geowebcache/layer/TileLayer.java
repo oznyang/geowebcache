@@ -90,6 +90,10 @@ public abstract class TileLayer implements Comparable<TileLayer>{
      */
     public abstract boolean removeLayerListener(TileLayerListener listener);
 
+    /**
+     * The unique identifier for the layer.
+     * @return
+     */
     public abstract String getId();
     
     /**
@@ -105,8 +109,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
     public abstract boolean isEnabled();
 
     /**
-     * @param enabled
-     *            whether to enabled caching for this layer
+     * @param enabled whether to enabled caching for this layer
      */
     public abstract void setEnabled(boolean enabled);
 
@@ -168,6 +171,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
 
     /**
      * 
+     * 
      * @param tile
      * @param tryCache
      * @throws GeoWebCacheException
@@ -201,6 +205,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
     public abstract String getStyles();
 
     /**
+     * The size of a metatile in tiles.
      * 
      * @return the {x,y} metatiling factors
      */
@@ -229,8 +234,18 @@ public abstract class TileLayer implements Comparable<TileLayer>{
      */
     public abstract List<MimeType> getMimeTypes();
 
+    /**
+     * Gets the expiration time to be declared to clients.
+     * @param zoomLevel integer zoom level at which to consider the expiration rules
+     * @return integer duration in seconds
+     */
     public abstract int getExpireClients(int zoomLevel);
 
+    /**
+     * Gets the expiration time for tiles in the cache.
+     * @param zoomLevel integer zoom level at which to consider the expiration rules
+     * @return integer duration in seconds
+     */
     public abstract int getExpireCache(int zoomLevel);
 
     public abstract List<ParameterFilter> getParameterFilters();
@@ -244,19 +259,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
     public abstract boolean initialize(GridSetBroker gridSetBroker);
 
     /**
-     * Acquire the global lock for the layer, primarily used for truncating
-     * 
-     */
-    public abstract void acquireLayerLock();
-
-    /**
-     * Release the global lock for the layer
-     * 
-     */
-    public abstract void releaseLayerLock();
-
-    /**
-     * This methdod is deprecated, as a layer may be configured for more than one gridset with the
+     * This method is deprecated, as a layer may be configured for more than one gridset with the
      * same SRS.
      * 
      * @deprecated use {@link #getGridSubsetsForSRS(SRS)} in combination with
@@ -343,6 +346,11 @@ public abstract class TileLayer implements Comparable<TileLayer>{
         return getGridSubset(gridSetId).getResolutions();
     }
 
+    /**
+     * Get the FormatModifier applicable to the given format.
+     * @param responseFormat MimeType of the format to consider
+     * @return FormatModifier describing the parameters for output to the given format
+     */
     public FormatModifier getFormatModifier(MimeType responseFormat) {
         List<FormatModifier> formatModifiers = getFormatModifiers();
         if (formatModifiers == null || formatModifiers.size() == 0) {
@@ -566,11 +574,11 @@ public abstract class TileLayer implements Comparable<TileLayer>{
     /**
      * Loops over the gridPositions, generates cache keys and saves to cache
      * 
-     * @param gridPositions
      * @param metaTile
-     * @param imageFormat
+     * @param tileProto
+     * @param requestTime
      */
-    protected void saveTiles(MetaTile metaTile, ConveyorTile tileProto) throws GeoWebCacheException {
+    protected void saveTiles(MetaTile metaTile, ConveyorTile tileProto, long requestTime) throws GeoWebCacheException {
 
         final long[][] gridPositions = metaTile.getTilesGridPositions();
         final long[] gridLoc = tileProto.getTileIndex();
@@ -611,6 +619,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
                         TileObject tile = TileObject.createCompleteTileObject(this.getName(), idx,
                                 tileProto.getGridSetId(), tileProto.getMimeType().getFormat(),
                                 tileProto.getParameters(), resource);
+                        tile.setCreated(requestTime);
 
                         try {
                             if (tileProto.isMetaTileCacheOnly()) {
@@ -618,6 +627,7 @@ public abstract class TileLayer implements Comparable<TileLayer>{
                             } else {
                                 tileProto.getStorageBroker().put(tile);
                             }
+                            tileProto.getStorageObject().setCreated(tile.getCreated());
                         } catch (StorageException e) {
                             throw new GeoWebCacheException(e);
                         }

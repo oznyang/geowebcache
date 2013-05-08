@@ -39,6 +39,9 @@ import org.geowebcache.storage.StorageBroker;
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileObject;
 
+/**
+ * Represents a request for a tile and carries the information needed to complete it.
+ */
 public class ConveyorTile extends Conveyor implements TileResponseReceiver {
     private static Log log = LogFactory.getLog(org.geowebcache.conveyor.ConveyorTile.class);
 
@@ -54,7 +57,7 @@ public class ConveyorTile extends Conveyor implements TileResponseReceiver {
 
     TileObject stObj = null;
 
-    private Map<String, String> fullParameters;
+    private Map<String, String> fullParameters; // TODO: why is this "full"?  It seems to only relate to filtering
 
     private boolean isMetaTileCacheOnly;
 
@@ -122,6 +125,10 @@ public class ConveyorTile extends Conveyor implements TileResponseReceiver {
         return tileLayer;
     }
 
+    /**
+     * The time that the stored tile resource was created
+     * @return
+     */
     public long getTSCreated() {
         return stObj.getCreated();
     }
@@ -225,10 +232,6 @@ public class ConveyorTile extends Conveyor implements TileResponseReceiver {
             }
             boolean ret = storageBroker.get((TileObject) stObj);
 
-            // Has the tile been explicitly marked as old?
-            if (ret && stObj.getCreated() == -1) {
-                ret = false;
-            } else
             // Do we use expiration, and if so, is the tile recent enough ?
             if (ret && maxAge > 0 && stObj.getCreated() + maxAge < System.currentTimeMillis()) {
                 ret = false;
@@ -272,7 +275,7 @@ public class ConveyorTile extends Conveyor implements TileResponseReceiver {
         return str.toString();
     }
 
-    public long getParametersId() {
+    public String getParametersId() {
         return stObj.getParametersId();
     }
 

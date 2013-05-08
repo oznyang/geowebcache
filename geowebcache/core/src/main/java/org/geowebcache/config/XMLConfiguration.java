@@ -77,6 +77,7 @@ import org.geowebcache.layer.meta.LayerMetaInformation;
 import org.geowebcache.layer.updatesource.GeoRSSFeedDefinition;
 import org.geowebcache.layer.wms.WMSHttpHelper;
 import org.geowebcache.layer.wms.WMSLayer;
+import org.geowebcache.locks.LockProvider;
 import org.geowebcache.mime.FormatModifier;
 import org.geowebcache.seed.SeedRequest;
 import org.geowebcache.storage.DefaultStorageFinder;
@@ -195,12 +196,12 @@ public class XMLConfiguration implements Configuration {
         if (configFileDirectory.startsWith("/") || configFileDirectory.contains(":\\")
                 || configFileDirectory.startsWith("\\\\")) {
 
-            log.info("Provided cache directory as absolute path '" + configFileDirectory + "'");
+            log.info("Provided configuration directory as absolute path '" + configFileDirectory + "'");
             this.configDirectory = new File(configFileDirectory);
         } else {
 
             String baseDir = context.getServletContext().getRealPath("");
-            log.info("Provided cache directory relative to servlet context '" + baseDir + "': "
+            log.info("Provided configuration directory relative to servlet context '" + baseDir + "': "
                     + configFileDirectory);
             this.configDirectory = new File(baseDir, configFileDirectory);
         }
@@ -360,6 +361,7 @@ public class XMLConfiguration implements Configuration {
             }
 
             wl.setSourceHelper(sourceHelper);
+            wl.setLockProvider(gwcConfig.getLockProvider());
         }
     }
 
@@ -534,24 +536,28 @@ public class XMLConfiguration implements Configuration {
 
         OutputStreamWriter writer = null;
         try {
-            writer = new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            uee.printStackTrace();
-            throw new IOException(uee.getMessage());
-        } catch (FileNotFoundException fnfe) {
-            throw fnfe;
-        }
-
-        try {
-            // set version to latest
-            String currentSchemaVersion = getCurrentSchemaVersion();
-            gwcConfig.setVersion(currentSchemaVersion);
-
-            writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-            xs.toXML(gwcConfig, writer);
-        } catch (IOException e) {
-            throw (IOException) new IOException("Error writing to " + xmlFile.getAbsolutePath()
-                    + ": " + e.getMessage()).initCause(e);
+            try {
+                writer = new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
+            } catch (UnsupportedEncodingException uee) {
+                uee.printStackTrace();
+                throw new IOException(uee.getMessage());
+            } catch (FileNotFoundException fnfe) {
+                throw fnfe;
+            }
+    
+            try {
+                // set version to latest
+                String currentSchemaVersion = getCurrentSchemaVersion();
+                gwcConfig.setVersion(currentSchemaVersion);
+    
+                writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+                xs.toXML(gwcConfig, writer);
+            } catch (IOException e) {
+                throw (IOException) new IOException("Error writing to " + xmlFile.getAbsolutePath()
+                        + ": " + e.getMessage()).initCause(e);
+            }
+        } finally {
+            IOUtils.closeQuietly(writer);
         }
 
         log.info("Wrote configuration to " + xmlFile.getAbsolutePath());
@@ -622,14 +628,10 @@ public class XMLConfiguration implements Configuration {
         }
 
         boolean removed = false;
-        tileLayer.acquireLayerLock();
-        try {
-            removed = gwcConfig.getLayers().remove(tileLayer);
-            if (removed) {
-                updateLayers();
-            }
-        } finally {
-            tileLayer.releaseLayerLock();
+        removed = gwcConfig.getLayers().remove(tileLayer);
+        if (removed) {
+            updateLayers();
+            
         }
         return removed;
     }

@@ -17,8 +17,6 @@
  */
 package org.geowebcache.storage;
 
-import org.geowebcache.io.Resource;
-
 /**
  * Manages the persistence of the actual data contained in cacheable objects (tiles, WFS responses).
  * <p>
@@ -28,28 +26,50 @@ import org.geowebcache.io.Resource;
  */
 public interface BlobStore {
     /**
-     * Delete a blob from storage. Does not modify the passed object
+     * Delete the cache for the named layer
      * 
-     * @param key
-     * @return true if succeeded, false if key did not exist
+     * @param layerName the name of the layer to delete
+     * @return {@literal true} if successful, {@literal false} otherwise
      */
     public boolean delete(String layerName) throws StorageException;
 
+    /**
+     * Delete the cache for the named gridset and layer
+     * 
+     * @param layerName
+     * @param gridSetId
+     * @return {@literal true} if successful, {@literal false} otherwise
+     * @throws StorageException
+     */
     public boolean deleteByGridsetId(final String layerName, final String gridSetId)
             throws StorageException;
 
-    public boolean delete(TileObject obj) throws StorageException;
-
-    public boolean delete(TileRange obj) throws StorageException;
-
     /**
-     * Retrieve a blob from storage. Calls setBlob() on passed object.
+     * Delete the cached blob associated with the specified TileObject.
+     * The passed in object itself will not be modified.
      * 
-     * @param key
-     * @return data, byte[0] if the blob is empty, null if it did not exist
+     * @param obj
+     * @return {@literal true} if successful, {@literal false} otherwise
      * @throws StorageException
      */
-    public Resource get(TileObject obj) throws StorageException;
+    public boolean delete(TileObject obj) throws StorageException;
+
+    /**
+     * Delete the cached blob associated with the tiles in the given range.
+     * 
+     * @param obj the range of tiles.
+     * @return {@literal true} if successful, {@literal false} otherwise
+     * @throws StorageException
+     */
+   public boolean delete(TileRange obj) throws StorageException;
+
+    /**
+     * Retrieves a tile from the storage, filling its metadata too
+     * @param obj
+     * @return {@literal true} if successful, {@literal false} otherwise
+     * @throws StorageException
+     */
+    public boolean get(TileObject obj) throws StorageException;
 
     /**
      * Store blob. Calls getBlob() on passed object, does not modify the object.
@@ -72,10 +92,28 @@ public interface BlobStore {
      */
     public void destroy();
 
+    /**
+     * Add an event listener 
+     * @param listener
+     * @see BlobStoreListener
+     */
     public void addListener(BlobStoreListener listener);
 
+    /**
+     * Remove an event listener
+     * @param listener
+     * @return {@literal true} if successful, {@literal false} otherwise
+     * @see BlobStoreListener
+     */
     public boolean removeListener(BlobStoreListener listener);
 
+    /**
+     * Rename a stored layer
+     * @param oldLayerName the old name of the layer
+     * @param newLayerName the new name
+     * @return {@literal true} if successful or the layer didn't exist, {@literal false} otherwise
+     * @throws StorageException
+     */
     public boolean rename(String oldLayerName, String newLayerName) throws StorageException;
 
     /**

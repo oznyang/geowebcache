@@ -17,12 +17,17 @@
  */
 package org.geowebcache.storage.blobstore.file;
 
+import static org.geowebcache.storage.blobstore.file.FilePathUtils.*;
+
 import java.io.File;
 import java.io.FilenameFilter;
 
 import org.geowebcache.storage.StorageException;
 import org.geowebcache.storage.TileRange;
 
+/**
+ * Filter for identifying files that represent tiles within a particular range
+ */
 public class FilePathFilter implements FilenameFilter {
 
     private final String gridSetPrefix;
@@ -31,6 +36,11 @@ public class FilePathFilter implements FilenameFilter {
 
     private TileRange tr;
 
+    /**
+     * Create a filter for stored tiles that are within a particular range.
+     * @param trObj the range to find
+     * @throws StorageException
+     */
     public FilePathFilter(TileRange trObj) throws StorageException {
         this.tr = trObj;
 
@@ -38,7 +48,7 @@ public class FilePathFilter implements FilenameFilter {
             throw new StorageException("Specifying the grid set id is currently mandatory.");
         }
 
-        gridSetPrefix = FilePathGenerator.filteredGridSetId(tr.getGridSetId());
+        gridSetPrefix = filteredGridSetId(tr.getGridSetId());
 
         if (tr.getMimeType() != null) {
             mimeExtension = tr.getMimeType().getFileExtension();
@@ -81,13 +91,18 @@ public class FilePathFilter implements FilenameFilter {
             // All zoomlevels
             return true;
         } else {
-            int tmp = FilePathGenerator.findZoomLevel(gridSetPrefix, name);
+            int tmp = findZoomLevel(gridSetPrefix, name);
             if (tmp < tr.getZoomStart() || tmp > tr.getZoomStop()) {
                 return false;
             }
         }
-
-        return true;
+        
+        String parameter = findParameter(gridSetPrefix, name);
+        if(tr.getParametersId() == null) {
+            return parameter == null;
+        } else {
+            return tr.getParametersId().equals(parameter);
+        }
     }
 
     private boolean acceptIntermediateDir(String name) {
@@ -112,7 +127,7 @@ public class FilePathFilter implements FilenameFilter {
         // Check coordinates
         String[] coords = parts[0].split("_");
 
-        int zoomLevel = FilePathGenerator.findZoomLevel(gridSetPrefix, parent.getParentFile()
+        int zoomLevel = findZoomLevel(gridSetPrefix, parent.getParentFile()
                 .getName());
         long x = Long.parseLong(coords[0]);
         long y = Long.parseLong(coords[1]);

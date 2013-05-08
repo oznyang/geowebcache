@@ -25,8 +25,8 @@ import org.geowebcache.io.Resource;
 
 /**
  * Represents a specific tile in a {@link GridSet}, identified by xyz. Normally the contents can be
- * either an image or a regionated KML tile, the class is format agnostic and just holds an array of
- * bytes.
+ * either an image or a regionated KML tile, the class is format agnostic and carries a {@link Resource}
+ * object with the data.
  */
 public class TileObject extends StorageObject {
     public static final String TYPE = "tile";
@@ -35,7 +35,7 @@ public class TileObject extends StorageObject {
 
     Resource blob;
 
-    long parameters_id = -1L;
+    String parameters_id = null;
 
     long layer_id = -1L;
 
@@ -131,11 +131,11 @@ public class TileObject extends StorageObject {
         this.layer_id = layer_id;
     }
 
-    public long getParametersId() {
+    public String getParametersId() {
         return this.parameters_id;
     }
 
-    public void setParamtersId(long parameters_id) {
+    public void setParametersId(String parameters_id) {
         this.parameters_id = parameters_id;
     }
 

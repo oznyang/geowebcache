@@ -2,10 +2,15 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-  <bean id="DiskQuotaConfigLoader" class="org.geowebcache.diskquota.ConfigLoader">
+  <!-- the config loader depends on the metastore remover because in case of migration we need to drop the disk quota subsystem -->
+  <bean id="DiskQuotaConfigLoader" class="org.geowebcache.diskquota.ConfigLoader" depends-on="metastoreRemover">
     <constructor-arg ref="gwcDefaultStorageFinder" />
     <constructor-arg ref="gwcAppCtx" />
     <constructor-arg ref="gwcTLDispatcher" />
+  </bean>
+
+  <bean id="DiskQuotaStoreProvider" class="org.geowebcache.diskquota.QuotaStoreProvider">
+      <constructor-arg ref="DiskQuotaConfigLoader" />
   </bean>
 
   <bean id="DiskQuotaMonitor" class="org.geowebcache.diskquota.DiskQuotaMonitor">
@@ -13,7 +18,7 @@
     <constructor-arg ref="DiskQuotaConfigLoader" />
     <constructor-arg ref="gwcTLDispatcher" />
     <constructor-arg ref="gwcStorageBroker" />
-    <constructor-arg ref="DiskQuotaStore" />
+    <constructor-arg ref="DiskQuotaStoreProvider" />
     <constructor-arg ref="gwcCacheCleaner" />
   </bean>
 
@@ -21,14 +26,8 @@
     <constructor-arg ref="gwcTLDispatcher" />
   </bean>
 
-  <bean id="DiskQuotaStore" class="org.geowebcache.diskquota.storage.BDBQuotaStore">
-    <constructor-arg ref="gwcDefaultStorageFinder" />
-    <constructor-arg ref="gwcTilePageCalculator" />
-  </bean>
-
   <bean id="gwcCacheCleaner" class="org.geowebcache.diskquota.CacheCleaner">
     <constructor-arg ref="gwcTileBreeder" />
-    <constructor-arg ref="DiskQuotaStore" />
   </bean>
 
   <!--bean id="mockWMSSource" class="org.geowebcache.util.MockWMSLayerSource"> <description>REMOVE THIS, it's a fake WMS 
@@ -57,5 +56,12 @@
     </property>
   </bean>
 
+  <!-- The quota store factories -->
+  <bean id="bdbQuotaStoreFactory" class="org.geowebcache.diskquota.bdb.BDBQuotaStoreFactory"/>
+  <bean id="jdbcQuotaStoreFactory" class="org.geowebcache.diskquota.jdbc.JDBCQuotaStoreFactory"/>
   
+  <!-- The SQL dialects -->
+  <bean id="H2QuotaDialect" class="org.geowebcache.diskquota.jdbc.H2Dialect"/>
+  <bean id="PostgreSQLQuotaDialect" class="org.geowebcache.diskquota.jdbc.PostgreSQLDialect"/>
+  <bean id="OracleQuotaDialect" class="org.geowebcache.diskquota.jdbc.OracleDialect"/>
 </beans>
